@@ -247,3 +247,8 @@ textarea.out.neg{min-height:80px;color:#7a4a4a}
 .mini-hint{font-size:11px;color:var(--dim);margin:8px 0 0;line-height:1.5}
 
 .slot2 .ph0{width:40px;height:48px;border-radius:6px;background:repeating-linear-gradient(45deg,#f2f2f5,#f2f2f5 6px,#fafafc 6px,#fafafc 12px);display:block}
+
+
+/* ---------- 姊妹站互链 ---------- */
+.links .btn.xlink{border-color:#d7d7e2;background:linear-gradient(180deg,#fff,#f6f6fb);font-weight:600}
+.links .btn.xlink:hover{border-color:#b9b9c9;background:linear-gradient(180deg,#fff,#eeeef7)}
