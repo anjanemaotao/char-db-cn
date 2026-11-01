@@ -346,10 +346,11 @@ function buildSheet() {
     function draw() {
       try {
         var cols = loaded.length <= 3 ? Math.max(loaded.length, 1) : 4;
-        var CW = 512, CH = 680, GAP = 18, PAD = 36;
+        var CW = 512, CH = 680, GAP = 18, PAD = 36, LAB = 56;
+        var ROWH = CH + LAB;
         var rows = Math.ceil(loaded.length / cols);
         var W = PAD * 2 + CW * cols + GAP * (cols - 1);
-        var H = PAD * 2 + CH * rows + GAP * (rows - 1);
+        var H = PAD * 2 + ROWH * rows + GAP * (rows - 1);
         var c = document.createElement("canvas");
         c.width = W; c.height = H;
         var g = c.getContext("2d");
@@ -357,7 +358,7 @@ function buildSheet() {
         loaded.forEach(function (o, k) {
           var row = Math.floor(k / cols), col = k % cols;
           var x = PAD + col * (CW + GAP);
-          var y = PAD + row * (CH + GAP);
+          var y = PAD + row * (ROWH + GAP);
           g.fillStyle = "#f6f6f8"; g.fillRect(x, y, CW, CH);
           if (o.img) {
             var im = o.img;
