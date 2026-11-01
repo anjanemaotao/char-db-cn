@@ -1,9 +1,11 @@
 # 二次元角色换装库 · 中文版（发型 / 服装 / 姿势 / 组装）
 
+<img width="2714" height="1860" alt="Image" src="https://github.com/user-attachments/assets/15a87b09-dedd-47ea-9199-76bdb0b23b08" />
+
 原站：<https://charadb-2fi.pages.dev/>（作者 たき AI / [@taki_auto](https://x.com/taki_auto)，2026-11-01 发布）
 这里是它的**中文检索界面**：1,027 张全部保留，名称与分类译成中文，标签保持 Danbooru 原文。
 
-**在线版**：<https://sleepyzone.online/char-db-cn/>（GitHub Pages，推 main 自动更新）
+**在线访问**：<https://sleepyzone.online/char-db-cn/>
 
 ## 打开方式
 
@@ -33,16 +35,6 @@
 - **固定行**：同一角色 300 页里一个字都不改
 - **可变行**：每张图最多改 3 个（服装、姿势、表情）
 - 姿势标签里出现 2girls 时，会自动把 1girl, solo 换成 2girls, multiple girls
-
-## 目录结构
-
-    char-db-cn/
-    ├── index.html     入口
-    ├── data.js        1,027 条（id / 分类 / 中文名 / 日文名 / 标签）
-    ├── assets/
-    │   ├── style.css
-    │   └── app.js
-    └── thumbs/        1,027 张缩略图（420×428 / 420×630，约 16 MB）
 
 ## 授权（沿用原站）
 
