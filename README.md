@@ -3,9 +3,11 @@
 原站：<https://charadb-2fi.pages.dev/>（作者 たき AI / [@taki_auto](https://x.com/taki_auto)，2026-11-01 发布）
 这里是它的**中文检索界面**：1,027 张全部保留，名称与分类译成中文，标签保持 Danbooru 原文。
 
+**在线版**：<https://sleepyzone.online/char-db-cn/>（GitHub Pages，推 main 自动更新）
+
 ## 打开方式
 
-双击 **index.html**（需要和 thumbs/ 在同一目录）。
+也可以本地双击 **index.html**（需要和 thumbs/ 在同一目录）。
 
 - 网格与筛选：图片走本地缩略图，离线可用
 - 点开大图 / 下载原图 / 线稿：跳转作者源站（不本地保存原图）
