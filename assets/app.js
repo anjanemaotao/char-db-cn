@@ -450,12 +450,42 @@ document.addEventListener("keydown", function (e) {
 
 /* ---------- 使用说明 hover ---------- */
 (function () {
-  var wrap = document.getElementById("tipsHover");
-  var btn = document.getElementById("tipsTrigger");
-  if (!wrap || !btn) return;
-  btn.onclick = function (e) { e.stopPropagation(); wrap.classList.toggle("open"); };
-  document.addEventListener("click", function (e) { if (!wrap.contains(e.target)) wrap.classList.remove("open"); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") wrap.classList.remove("open"); });
+  var pairs = [["tipsHover", "tipsTrigger"], ["gratHover", "gratTrigger"]];
+  var wraps = [];
+  pairs.forEach(function (pair) {
+    var wrap = document.getElementById(pair[0]);
+    var btn = document.getElementById(pair[1]);
+    if (!wrap || !btn) return;
+    wraps.push(wrap);
+    btn.onclick = function (e) {
+      e.stopPropagation();
+      var open = !wrap.classList.contains("open");
+      wraps.forEach(function (w) { w.classList.remove("open"); });
+      wrap.classList.toggle("open", open);
+    };
+  });
+  document.addEventListener("click", function (e) {
+    if (!wraps.some(function (w) { return w.contains(e.target); })) {
+      wraps.forEach(function (w) { w.classList.remove("open"); });
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") wraps.forEach(function (w) { w.classList.remove("open"); });
+  });
+  // 首次访问：9 秒后自动展开赞赏一次，8 秒后收起
+  try {
+    var grat = document.getElementById("gratHover");
+    if (grat && !window.localStorage.getItem("gratNudge")) {
+      window.localStorage.setItem("gratNudge", "1");
+      setTimeout(function () {
+        if (grat.matches(":hover") || grat.classList.contains("open")) return;
+        grat.classList.add("open");
+        setTimeout(function () {
+          if (!grat.matches(":hover")) grat.classList.remove("open");
+        }, 8000);
+      }, 9000);
+    }
+  } catch (e) { }
 })();
 
 /* ---------- 导航 ---------- */
