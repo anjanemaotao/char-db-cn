@@ -52,6 +52,13 @@ var byId = {};
 DB.items.forEach(function (i) { byId[i.id] = i; });
 
 function thumbUrl(id) { return "thumbs/" + id + ".webp"; }
+/* 本地原图（仅 file:// 打开时生效，站点上自动忽略） */
+function localBase(kind) {
+  if (location.protocol !== "file:") return null;
+  var L = window.LOCAL_ORIGINALS;
+  return (L && L[kind]) || null;
+}
+function hasLocal(kind) { return !!localBase(kind); }
 function fullUrl(id) { return BASE + "img/" + id + ".jpg"; }
 function lineUrl(id) { return BASE + "line/" + id + ".png"; }
 
@@ -413,15 +420,47 @@ var curId = null;
 function openModal(id) {
   curId = id;
   var it = byId[id];
-  $("#mimg").src = fullUrl(id);
-  $("#mimg").onerror = function () { $("#mimg").src = thumbUrl(id); };
+  var chain = hasLocal("img")
+    ? [localBase("img") + id + ".jpg", fullUrl(id), thumbUrl(id)]
+    : [fullUrl(id), thumbUrl(id)];
+  var step = 0;
+  $("#mimg").onerror = function () {
+    step++;
+    if (step < chain.length) $("#mimg").src = chain[step];
+    else $("#mimg").onerror = null;
+  };
+  $("#mimg").src = chain[0];
   $("#mtitle").textContent = it.zh;
   $("#mfields").innerHTML = "<dt>编号</dt><dd>" + it.id + "</dd><dt>分类</dt><dd>" + esc(it.catZh) + "</dd>"
     + "<dt>日文</dt><dd>" + esc(it.jp) + "</dd>";
   $("#mtags").innerHTML = it.tags.split(",").map(function (t) { return '<span class="chip en">' + esc(t.trim()) + "</span>"; }).join("");
-  $("#mfull").href = fullUrl(id);
+  var full = $("#mfull");
+  if (hasLocal("img")) {
+    full.href = localBase("img") + id + ".jpg";
+    full.setAttribute("download", id + ".jpg");
+    full.removeAttribute("target");
+    full.textContent = "下载原图（本地 · 1024×1536）";
+  } else {
+    full.href = fullUrl(id);
+    full.removeAttribute("download");
+    full.setAttribute("target", "_blank");
+    full.textContent = "打开原图（源站）↗";
+  }
   var ln = $("#mline");
-  if (it.set === "pose" && it.line) { ln.hidden = false; ln.href = lineUrl(id); } else { ln.hidden = true; }
+  if (it.set === "pose" && it.line) {
+    ln.hidden = false;
+    if (hasLocal("line")) {
+      ln.href = localBase("line") + id + ".png";
+      ln.setAttribute("download", id + ".png");
+      ln.removeAttribute("target");
+      ln.textContent = "下载线稿（本地 · PNG）";
+    } else {
+      ln.href = lineUrl(id);
+      ln.removeAttribute("download");
+      ln.setAttribute("target", "_blank");
+      ln.textContent = "打开线稿（源站）↗";
+    }
+  } else { ln.hidden = true; }
   $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
   $("#modal").classList.add("on");
 }
