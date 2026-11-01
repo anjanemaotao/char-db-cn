@@ -252,3 +252,17 @@ textarea.out.neg{min-height:80px;color:#7a4a4a}
 /* ---------- 姊妹站互链 ---------- */
 .links .btn.xlink{border-color:#d7d7e2;background:linear-gradient(180deg,#fff,#f6f6fb);font-weight:600}
 .links .btn.xlink:hover{border-color:#b9b9c9;background:linear-gradient(180deg,#fff,#eeeef7)}
+
+/* ---------- 顶部原图下载条 ---------- */
+.dlbar{background:linear-gradient(180deg,#fbf7ea,#fdfaf2);border-bottom:1px solid #efe6cd}
+.dlbar .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.dl-txt{display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
+.dl-txt b{font-size:13px;color:#6b4f14;white-space:nowrap}
+.dl-txt span{font-size:12px;color:#8a7a52}
+.dl-btns{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.dl-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:600;color:#fff;background:linear-gradient(180deg,#e8b34a,#d99a24);border:1px solid #cf9018;box-shadow:0 1px 2px rgba(160,110,10,.18)}
+.dl-btn:hover{filter:brightness(1.05);color:#fff}
+.dl-btn+.dl-btn{background:linear-gradient(180deg,#6a8fd8,#4d74c4);border-color:#3f63ad;box-shadow:0 1px 2px rgba(40,70,140,.18)}
+.dl-code{font-size:11.5px;color:#8a7a52}
+.dl-code b{color:#6b4f14;letter-spacing:.06em}
+@media (max-width:720px){.dl-btns{margin-left:0;width:100%}}
