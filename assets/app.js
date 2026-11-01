@@ -252,8 +252,9 @@ function renderBuild() {
     + '<div class="box" style="grid-column:1/-1"><h3>③ 提示词</h3>'
     + '<textarea class="out" id="outPos" readonly></textarea>'
     + '<div class="mini-hint">负面提示词</div><textarea class="out neg" id="outNeg" readonly></textarea>'
-    + '<div class="build-btns"><button class="primary" id="copyPos">复制正向</button><button id="copyNeg">复制负面</button><button id="copyBoth">两个都复制</button>'
-    + '<button id="openSheet">在新标签预览</button></div></div></div>';
+    + '<div class="build-btns"><button class="primary" id="copyPos">复制正向</button><button id="copyNeg">复制负面</button><button id="copyBoth">两个都复制</button></div>'
+    + '<p class="mini-hint">只想靠文字就复制上面的提示词；服装或姿势要更贴近时，再导出一张参考图一起发。</p>'
+    + '<div class="build-btns"><button id="sheetSave">导出参考图</button><button id="sheetCopy">复制参考图</button></div></div></div>';
   $("#grid").className = "grid";
   $("#grid").innerHTML = html;
   $("#outPos").value = buildPrompt();
@@ -277,7 +278,8 @@ function renderBuild() {
   $("#copyPos").onclick = function () { copyText($("#outPos").value, this); };
   $("#copyNeg").onclick = function () { copyText($("#outNeg").value, this); };
   $("#copyBoth").onclick = function () { copyText("POSITIVE:\n" + $("#outPos").value + "\n\nNEGATIVE:\n" + $("#outNeg").value, this); };
-  $("#openSheet").onclick = function () { window.open("data:text/plain;charset=utf-8," + encodeURIComponent($("#outPos").value), "_blank"); };
+  $("#sheetSave").onclick = function () { exportSheet(this, false); };
+  $("#sheetCopy").onclick = function () { exportSheet(this, true); };
   $("#randAll").onclick = function () {
     ["style", "bangs", "color", "acc", "eye", "outfit", "pose"].forEach(function (k) {
       var pool = DB.items.filter(function (i) { return slotKey(i) === k; });
@@ -302,6 +304,107 @@ function fallback(text, done) {
   document.body.appendChild(t); t.select();
   try { document.execCommand("copy"); done(); } catch (e) { }
   t.remove();
+}
+
+/* ---------- 参考图合成 ---------- */
+function loadImg(url, cors) {
+  return new Promise(function (resolve, reject) {
+    var im = new Image();
+    if (cors) im.crossOrigin = "anonymous";
+    im.onload = function () { resolve(im); };
+    im.onerror = function () { reject(new Error("load failed")); };
+    im.src = url;
+  });
+}
+var SHEET_ORDER = ["style", "bangs", "color", "acc", "eye", "outfit", "pose"];
+function sheetItems() {
+  var out = [];
+  SHEET_ORDER.forEach(function (k) {
+    if (SEL[k] && byId[SEL[k]]) out.push({ key: k, it: byId[SEL[k]], label: SLOT_LABEL[k] });
+  });
+  return out;
+}
+function buildSheet() {
+  return new Promise(function (resolve, reject) {
+    var list = sheetItems();
+    if (!list.length) { reject(new Error("empty")); return; }
+    var loaded = [];
+    var i = 0;
+    function next() {
+      if (i >= list.length) { draw(); return; }
+      var o = list[i++];
+      loadImg(fullUrl(o.it.id), true).then(function (im) {
+        loaded.push({ img: im, item: o }); next();
+      }).catch(function () {
+        loadImg(thumbUrl(o.it.id), true).then(function (im) {
+          loaded.push({ img: im, item: o }); next();
+        }).catch(function () {
+          loaded.push({ img: null, item: o }); next();
+        });
+      });
+    }
+    function draw() {
+      try {
+        var cols = loaded.length <= 3 ? Math.max(loaded.length, 1) : 4;
+        var CW = 512, CH = 680, GAP = 18, PAD = 36;
+        var rows = Math.ceil(loaded.length / cols);
+        var W = PAD * 2 + CW * cols + GAP * (cols - 1);
+        var H = PAD * 2 + CH * rows + GAP * (rows - 1);
+        var c = document.createElement("canvas");
+        c.width = W; c.height = H;
+        var g = c.getContext("2d");
+        g.fillStyle = "#ffffff"; g.fillRect(0, 0, W, H);
+        loaded.forEach(function (o, k) {
+          var row = Math.floor(k / cols), col = k % cols;
+          var x = PAD + col * (CW + GAP);
+          var y = PAD + row * (CH + GAP);
+          g.fillStyle = "#f6f6f8"; g.fillRect(x, y, CW, CH);
+          if (o.img) {
+            var im = o.img;
+            var sc = Math.min((CW - 8) / im.width, (CH - 8) / im.height);
+            var w = im.width * sc, h = im.height * sc;
+            g.drawImage(im, x + (CW - w) / 2, y + (CH - h) / 2, w, h);
+          }
+          var mark = "①②③④⑤⑥⑦".charAt(k);
+          g.fillStyle = "#1b1b1f";
+          g.font = "600 34px -apple-system, 'PingFang SC', sans-serif";
+          g.fillText(mark + " " + o.item.label + " · " + o.item.it.zh, x + 4, y + CH + 44);
+        });
+        c.toBlob(function (b) {
+          if (b) resolve(b); else reject(new Error("toBlob"));
+        }, "image/png");
+      } catch (e) { reject(e); }
+    }
+    next();
+  });
+}
+function saveBlob(blob, name) {
+  var u = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = u; a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(u); a.remove(); }, 3000);
+}
+function sheetName() {
+  return "chardb_" + sheetItems().map(function (o) { return o.it.id; }).join("_") + ".png";
+}
+function exportSheet(btn, asCopy) {
+  var label = btn.textContent;
+  btn.textContent = "生成中…";
+  buildSheet().then(function (blob) {
+    if (asCopy && navigator.clipboard && window.ClipboardItem) {
+      return navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(function () {
+        btn.textContent = "已复制图片 ✓";
+        setTimeout(function () { btn.textContent = label; }, 1600);
+      });
+    }
+    saveBlob(blob, sheetName());
+    btn.textContent = "已下载 ✓";
+    setTimeout(function () { btn.textContent = label; }, 1600);
+  }).catch(function () {
+    btn.textContent = "请先选至少一个零件";
+    setTimeout(function () { btn.textContent = label; }, 2200);
+  });
 }
 
 /* ---------- 弹窗 ---------- */
