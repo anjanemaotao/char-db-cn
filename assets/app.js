@@ -496,6 +496,10 @@ document.querySelectorAll(".nav button").forEach(function (b) {
     render();
   };
 });
-document.querySelector('.nav button[data-set="hair"]').classList.add("on");
+// 默认落在「组装」页
+S.set = "build";
+document.querySelectorAll(".nav button").forEach(function (x) {
+  x.classList.toggle("on", x.dataset.set === "build");
+});
 render();
 })();
