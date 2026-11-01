@@ -34,7 +34,7 @@ window.LOCAL_ORIGINALS = {
 
 顶部有打包下载条，两个网盘任选：
 
-- 百度网盘：<https://pan.baidu.com/s/1HOBVBkWRRPVW1rKmrWt7Fw?pwd=5NR1>（提取码 **5NR1**）
+- 百度网盘：<https://pan.baidu.com/s/1HOBVBkWRRPVW1rKmrWt7Fw?pwd=5NR1>
 - 夸克网盘：<https://pan.quark.cn/s/b18c3791645b>
 
 内容：1,027 张原图 JPEG（1024×1536）+ 281 张姿势线稿 PNG，共 191 MB。
