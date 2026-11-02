@@ -49,7 +49,7 @@ window.LOCAL_ORIGINALS = {
 - 百度网盘：<https://pan.baidu.com/s/1X0o-TJZzFrNoist6a8qqXg?pwd=Px22>
 - 夸克网盘：<https://pan.quark.cn/s/adb9f57434be>
 
-「服装 → 单品图」页面右上角也有这两个入口。
+这两个入口常驻在顶部下载条的第二行（全站可见，「单品图原图 · 新增」那一行）。
 
 ## 能做什么
 
