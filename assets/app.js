@@ -50,6 +50,9 @@ try {
 } catch (e) { }
 function saveSel() { try { window.localStorage.setItem("charSel", JSON.stringify(SEL)); window.localStorage.setItem("charOpt", JSON.stringify(OPT)); } catch (e) { } }
 
+// 兼容旧版本：曾把单品图存在 ref 槽
+if (SEL.ref) { if (!SEL.outfit) SEL.outfit = SEL.ref; SEL.ref = null; }
+
 var byId = {};
 DB.items.forEach(function (i) { byId[i.id] = i; });
 
@@ -74,7 +77,7 @@ function cardHTML(it) {
       + '<div class="badge">' + it.id + '</div><button class="fav' + fav2 + '" data-fav="' + it.id + '" title="收藏">★</button></div>'
       + '<div class="meta"><h3>' + esc(it.catZh) + '</h3><p class="tg">' + esc(it.tags) + '</p></div>'
       + '<div class="acts2"><button data-copy="' + it.id + '">复制描述</button>'
-      + '<button data-add="' + it.id + '" class="' + (added2 ? "on" : "") + '">' + (added2 ? "已参考 ✓" : "加入参考") + '</button></div>'
+      + '<button data-add="' + it.id + '" class="' + (added2 ? "on" : "") + '">' + (added2 ? "已加入 ✓" : "加入组装") + '</button></div>'
       + '</article>';
   }
   var isPose = it.set === "pose";
@@ -93,6 +96,9 @@ function cardHTML(it) {
     + '<div class="acts2"><button data-copy="' + it.id + '">复制标签</button>'
     + '<button data-add="' + it.id + '" class="' + (added ? "on" : "") + '">' + (added ? "已加入 ✓" : "加入组装") + '</button></div>'
     + '</article>';
+}
+function itemTitle(it) {
+  return it.set === "outfit2" ? (it.catZh + " · " + it.id) : it.zh;
 }
 function isAdded(id) { return Object.keys(SEL).some(function (k) { return SEL[k] === id; }); }
 
@@ -202,7 +208,7 @@ function toggleAdd(it) {
   saveSel(); render();
 }
 function slotKey(it) {
-  if (it.set === "outfit2") return "ref";
+  if (it.set === "outfit2") return "outfit";   // 单品图与角色穿着共用一个「服装」槽
   if (it.set === "outfit") return "outfit";
   if (it.set === "pose") return "pose";
   if (it.sub) return it.sub;   // style / bangs / color / acc / eye
@@ -218,7 +224,7 @@ function qualOpts() {
     return '<option value="' + o[0] + '"' + (OPT.quality === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
   }).join("");
 }
-var SLOT_LABEL = { style: "发型", bangs: "刘海", color: "发色", acc: "发饰", eye: "眼睛", outfit: "服装", ref: "服装参考", pose: "姿势" };
+var SLOT_LABEL = { style: "发型", bangs: "刘海", color: "发色", acc: "发饰", eye: "眼睛", outfit: "服装", pose: "姿势" };
 
 function buildPrompt() {
   var q = QUALITY[OPT.quality] || "";
@@ -265,7 +271,7 @@ function renderBuild() {
     var it = SEL[k] ? byId[SEL[k]] : null;
     slots += '<div class="slot2' + (it ? "" : " empty") + '">'
       + (it ? '<img src="' + thumbUrl(it.id) + '" alt="">' : '<span class="ph0"></span>')
-      + '<div class="t"><div class="k">' + SLOT_LABEL[k] + "</div><div class=\"v\">" + (it ? esc(it.zh) : "未选择") + "</div></div>"
+      + '<div class="t"><div class="k">' + SLOT_LABEL[k] + "</div><div class=\"v\">" + (it ? esc(itemTitle(it)) : "未选择") + "</div></div>"
       + (it ? '<button class="x" data-clear="' + k + '">×</button>' : "")
       + "</div>";
   });
@@ -275,7 +281,7 @@ function renderBuild() {
   var html = '<div class="build">'
     + '<div class="box"><h3>① 选中的零件</h3><div class="slots">' + slots + "</div>"
     + '<div class="build-btns"><button id="randAll">🎲 全部随机</button><button id="clearAll">全部清空</button></div>'
-    + '<p class="mini-hint">在「发型 / 服装 / 姿势」页点卡片上的「加入组装」即可填入；带颜色标记的发型卡会自动替换基础发型。<br>「服装 → 单品图」里的图没有人物，点「加入参考」会填进「服装参考」，导出参考图时一起拼进去。</p></div>'
+    + '<p class="mini-hint">在「发型 / 服装 / 姿势」页点卡片上的「加入组装」即可填入；带颜色标记的发型卡会自动替换基础发型。<br>「服装」两种来源共用一个槽：角色穿着（带标签）或单品图（只有衣服），选哪个都填这里。</p></div>'
     + '<div class="box"><h3>② 生成设置</h3><div class="fields">'
     + "<label>品质前缀</label><select id=\"optQuality\">" + qualOpts() + "</select>"
     + "<label>表情</label><select id=\"optExpr\">" + opts(EXPR, OPT.expr) + "</select>"
@@ -356,7 +362,7 @@ function loadImg(url, cors) {
     im.src = url;
   });
 }
-var SHEET_ORDER = ["style", "bangs", "color", "acc", "eye", "outfit", "ref", "pose"];
+var SHEET_ORDER = ["style", "bangs", "color", "acc", "eye", "outfit", "pose"];
 function sheetSrc(it) {
   if (it.set === "outfit2") return REF_BASE + it.full;
   return fullUrl(it.id);
@@ -413,7 +419,7 @@ function buildSheet() {
           var mark = "①②③④⑤⑥⑦".charAt(k);
           g.fillStyle = "#1b1b1f";
           g.font = "600 34px -apple-system, 'PingFang SC', sans-serif";
-          g.fillText(mark + " " + o.item.label + " · " + o.item.it.zh, x + 4, y + CH + 44);
+          g.fillText(mark + " " + o.item.label + " · " + itemTitle(o.item.it), x + 4, y + CH + 44);
         });
         c.toBlob(function (b) {
           if (b) resolve(b); else reject(new Error("toBlob"));
@@ -471,7 +477,7 @@ function openModal(id) {
     f2.setAttribute("target", "_blank");
     f2.textContent = "打开原尺寸（源站 PNG）↗";
     $("#mline").hidden = true;
-    $("#madd").textContent = isAdded(id) ? "已参考 ✓" : "加入服装参考";
+    $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
     $("#modal").classList.add("on");
     return;
   }
