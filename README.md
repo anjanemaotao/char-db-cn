@@ -1,6 +1,6 @@
 # 二次元角色换装库 · 中文版（发型 / 服装 / 姿势 / 组装）
 
-<img width="2714" height="1860" alt="Image" src="https://github.com/user-attachments/assets/15a87b09-dedd-47ea-9199-76bdb0b23b08" />
+<img width="2424" height="1856" alt="Image" src="https://github.com/user-attachments/assets/3c2857cd-9380-4f13-bbea-b6462aa49ca5" />
 
 原站：<https://charadb-2fi.pages.dev/>（作者 たき AI / [@taki_auto](https://x.com/taki_auto)，2026-11-01 发布）
 这里是它的**中文检索界面**：1,027 张全部保留，名称与分类译成中文，标签保持 Danbooru 原文。
@@ -9,7 +9,7 @@
 
 [新服装支持](https://x.com/giaaibusi/status/2116801951283450032)：
 
-<img width="2678" height="1822" alt="Image" src="https://github.com/user-attachments/assets/b818cb33-35a3-4fac-b780-949bdf2f9c05" />
+<img width="2434" height="1854" alt="Image" src="https://github.com/user-attachments/assets/3440aeec-ec23-40ff-8d38-a7ad21100e18" />
 
 ## 打开方式
 
@@ -56,10 +56,10 @@ window.LOCAL_ORIGINALS = {
 - **四个标签页**：发型 306（发型 230 / 发色 20 / 瞳色 19 / 发饰 16 / 刘海 12 / 瞳型 9）、服装 1,760、姿势 281（8 类）、组装
 - **服装页两个视图**：「角色穿着 440」（带标签）与「单品图 1,320」（只有衣服、无人物），分类随视图切换；两种来源共用组装页里的同一个「服装」槽
 - **中/日/标签三语搜索**：输入「双马尾」「ツインテール」「twintails」都能命中
-- **收藏**：卡片左下角 ★，可切「只看收藏」
+- **收藏**：卡片左下角 ★ 可标记喜欢的条目
 - **复制标签**：一键复制该条的 Danbooru 标签
 - **加入组装**：把发型 / 刘海 / 发色 / 发饰 / 眼睛 / 服装 / 姿势分别放进 7 个槽位
-- **组装页**：选品质前缀（Illustrious、Anima、NovelAI、SDXL/Pony）、表情、构图、背景、体型、追加标签，实时生成正向 + 负向提示词，三种复制方式
+- **组装页**：选品质前缀（Illustrious、Anima、NovelAI、SDXL/Pony）、表情、构图、背景、体型、追加标签，实时生成正向 + 负向提示词，正向 / 负向各带复制 icon，底部按钮可一键复制全部
 - **导出参考图**：把选中的零件用 canvas 拼成一张带编号的对照图（① 发型 ② 服装 ③ 姿势…），可下载或复制到剪贴板，配合提示词一起发
 - **线稿**：有线稿的姿势卡右上角可切「絵 / 线稿」，线稿是 PNG，可直接喂 ControlNet
 

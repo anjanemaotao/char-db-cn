@@ -10,12 +10,13 @@ function trackSearch() {
     if (S.q) trackEvent("search", { lib: effSet(), q: S.q.slice(0, 40) });
   }, 800);
 }
+var ICON_DICE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
 var DB = window.CHARDB;
 var BASE = DB.base;
 var REF_BASE = "https://ai-costume-anime-gallery.pages.dev/";
 var SETS = { hair: "发型", outfit: "服装", pose: "姿势", build: "组装" };
-var S = { set: "hair", q: "", cat: { hair: "", outfit: "", pose: "", outfit2: "" }, favOnly: false, outfitView: "worn" };
+var S = { set: "hair", q: "", cat: { hair: "", outfit: "", pose: "", outfit2: "" }, outfitView: "worn" };
 function effSet() { return (S.set === "outfit" && S.outfitView === "ref") ? "outfit2" : S.set; }
 var QUALITY = {
   illustrious: "masterpiece, best quality, amazing quality, very aesthetic, absurdres, newest",
@@ -82,7 +83,7 @@ function cardHTML(it) {
     var added2 = isAdded(it.id) ? " on" : "";
     return '<article class="card ref" data-id="' + it.id + '">'
       + '<div class="ph sq"><img loading="lazy" decoding="async" src="' + thumbUrl(it.id) + '" alt="' + esc(it.id) + '">'
-      + '<div class="badge">' + it.id + '</div><button class="fav' + fav2 + '" data-fav="' + it.id + '" title="收藏">★</button></div>'
+      + '<div class="badge">' + it.id + '</div><button class="fav' + fav2 + '" data-fav="' + it.id + '" title="收藏"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button></div>'
       + '<div class="meta"><h3>' + esc(it.catZh) + '</h3><p class="tg">' + esc(it.tags) + '</p></div>'
       + '<div class="acts2"><button data-copy="' + it.id + '">复制描述</button>'
       + '<button data-add="' + it.id + '" class="' + (added2 ? "on" : "") + '">' + (added2 ? "已加入 ✓" : "加入组装") + '</button></div>'
@@ -99,7 +100,7 @@ function cardHTML(it) {
     : "";
   return '<article class="card" data-id="' + it.id + '">'
     + '<div class="ph ' + ratio + '"><img loading="lazy" decoding="async" src="' + src + '" alt="' + esc(it.zh) + '">'
-    + '<div class="badge">' + it.id + '</div><button class="fav' + fav + '" data-fav="' + it.id + '" title="收藏">★</button>' + vwHtml + '</div>'
+    + '<div class="badge">' + it.id + '</div><button class="fav' + fav + '" data-fav="' + it.id + '" title="收藏"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button>' + vwHtml + '</div>'
     + '<div class="meta"><h3>' + esc(it.zh) + '</h3><p class="jp">' + esc(it.jp) + '</p><p class="tg">' + esc(it.tags) + '</p></div>'
     + '<div class="acts2"><button data-copy="' + it.id + '">复制标签</button>'
     + '<button data-add="' + it.id + '" class="' + (added ? "on" : "") + '">' + (added ? "已加入 ✓" : "加入组装") + '</button></div>'
@@ -113,7 +114,6 @@ function isAdded(id) { return Object.keys(SEL).some(function (k) { return SEL[k]
 /* ---------- 过滤 ---------- */
 function match(it) {
   if (it.set !== effSet()) return false;
-  if (S.favOnly && !FAV[it.id]) return false;
   if (S.cat[effSet()] && it.catZh !== S.cat[effSet()]) return false;
   if (S.q) {
     var q = S.q.toLowerCase();
@@ -143,8 +143,7 @@ function renderToolbar() {
     : "搜索：中文 / 日文 / 标签（twintails、serafuku、水手服）";
   $("#toolbar").innerHTML = seg + '<div class="tabs">' + tabs + "</div>"
     + '<div class="row"><input id="q" type="search" placeholder="' + placeholder + '" autocomplete="off">'
-    + '<button class="rndbtn" id="favBtn" style="margin-left:0">★ 只看收藏</button>'
-    + '<button class="rndbtn" id="rnd2">🎲 随机一张</button><span id="count"></span></div>';
+    + '<button class="rndbtn" id="rnd2">' + ICON_DICE + ' 随机一张</button><span id="count"></span></div>';
   $("#toolbar").querySelectorAll("[data-cat]").forEach(function (b) {
     b.onclick = function () {
       S.cat[set] = b.dataset.cat;
@@ -161,12 +160,6 @@ function renderToolbar() {
   });
   $("#q").value = S.q;
   $("#q").oninput = function (e) { S.q = e.target.value.trim(); renderGrid(); trackSearch(); };
-  $("#favBtn").classList.toggle("on", S.favOnly);
-  $("#favBtn").onclick = function () {
-    S.favOnly = !S.favOnly;
-    trackEvent("filter", { lib: set, type: "fav", value: S.favOnly ? "on" : "off" });
-    render();
-  };
   $("#rnd2").onclick = function () {
     var list = DB.items.filter(match); if (!list.length) return;
     trackEvent("random", { lib: set });
@@ -245,8 +238,8 @@ function slotKey(it) {
 }
 
 var QUAL_LABELS = [
-  ["illustrious", "Illustrious / Noob 系"], ["anima", "Anima 系"],
-  ["novelai", "NovelAI"], ["pony", "SDXL / Pony 系"], ["none", "不加（自己写）"]
+  ["illustrious", "Illustrious / Noob 系（二次元）"], ["anima", "Anima 系（二次元）"],
+  ["novelai", "NovelAI（二次元）"], ["pony", "SDXL / Pony 系（通用）"], ["none", "不加（自己写）"]
 ];
 function qualOpts() {
   return QUAL_LABELS.map(function (o) {
@@ -254,6 +247,18 @@ function qualOpts() {
   }).join("");
 }
 var SLOT_LABEL = { style: "发型", bangs: "刘海", color: "发色", acc: "发饰", eye: "眼睛", outfit: "服装", pose: "姿势" };
+var EXPR_ZH = {
+  "指定なし": "不指定", "笑顔": "笑容", "微笑み": "微笑", "ニカッ": "咧嘴笑",
+  "口を閉じる": "闭嘴", "口を開ける": "张嘴", "赤面": "脸红", "照れ": "害羞",
+  "無表情": "无表情", "真剣": "认真", "怒り": "生气", "むくれ": "鼓腮",
+  "泣き": "哭泣", "驚き": "惊讶", "ジト目でニヤリ": "半眯眼坏笑",
+  "ウインク": "眨眼", "舌出し": "吐舌", "妖しい笑み": "妖艳微笑"
+};
+var COMPO_ZH = {
+  "指定なし": "不指定", "全身": "全身", "太ももまで": "大腿以上", "上半身": "上半身",
+  "顔アップ": "面部特写", "上から": "俯视", "下から": "仰视", "横から": "侧面",
+  "後ろから振り返り": "回眸", "斜め": "斜角"
+};
 
 function buildPrompt() {
   var q = QUALITY[OPT.quality] || "";
@@ -304,27 +309,46 @@ function renderBuild() {
       + (it ? '<button class="x" data-clear="' + k + '">×</button>' : "")
       + "</div>";
   });
-  function opts(list, cur) {
-    return list.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (cur === o[0] ? " selected" : "") + ">" + (BG_ZH[o[0]] || o[0]) + "</option>"; }).join("");
+  function opts(list, cur, mode) {
+    return list.map(function (o) {
+      var label = o[0];
+      var zh = mode === "expr" ? EXPR_ZH[label] : (mode === "compo" ? COMPO_ZH[label] : BG_ZH[label]);
+      var text = mode === "bg" ? (zh || label) : (zh && zh !== label ? label + "（" + zh + "）" : label);
+      return '<option value="' + esc(label) + '"' + (cur === label ? " selected" : "") + ">" + esc(text) + "</option>";
+    }).join("");
   }
   var html = '<div class="build">'
     + '<div class="box"><h3>① 选中的零件</h3><div class="slots">' + slots + "</div>"
-    + '<div class="build-btns"><button id="randAll">🎲 全部随机</button><button id="clearAll">全部清空</button></div>'
-    + '<p class="mini-hint">在「发型 / 服装 / 姿势」页点卡片上的「加入组装」即可填入；带颜色标记的发型卡会自动替换基础发型。<br>「服装」两种来源共用一个槽：角色穿着（带标签）或单品图（只有衣服），选哪个都填这里。</p></div>'
+    + '<div class="build-btns"><button id="randAll">' + ICON_DICE + ' 全部随机</button><button id="clearAll">全部清空</button></div>'
+    + '<p class="mini-hint">在「发型 / 服装 / 姿势」页点卡片上的「加入组装」即可填入；带颜色标记的发型卡会自动替换基础发型。</p></div>'
     + '<div class="box"><h3>② 生成设置</h3><div class="fields">'
     + "<label>品质前缀</label><select id=\"optQuality\">" + qualOpts() + "</select>"
-    + "<label>表情</label><select id=\"optExpr\">" + opts(EXPR, OPT.expr) + "</select>"
-    + "<label>构图</label><select id=\"optCompo\">" + opts(COMPO, OPT.compo) + "</select>"
-    + "<label>背景</label><select id=\"optBg\">" + opts(BG, OPT.bg) + "</select>"
+    + "<label>表情</label><select id=\"optExpr\">" + opts(EXPR, OPT.expr, "expr") + "</select>"
+    + "<label>构图</label><select id=\"optCompo\">" + opts(COMPO, OPT.compo, "compo") + "</select>"
+    + "<label>背景</label><select id=\"optBg\">" + opts(BG, OPT.bg, "bg") + "</select>"
     + '<label>体型</label><input id="optBody" type="text" placeholder="如 slim, medium breasts（选填，固定行）" value="' + esc(OPT.body) + '">'
     + '<label>追加标签</label><input id="optExtra" type="text" placeholder="如 looking at viewer, sitting" value="' + esc(OPT.extra) + '">'
     + '</div><p class="mini-hint">品质前缀说明：Illustrious / Noob、Anima、NovelAI、SDXL·Pony 各一套，按你用的模型选。</p></div>'
-    + '<div class="box" style="grid-column:1/-1"><h3>③ 提示词</h3>'
-    + '<textarea class="out" id="outPos" readonly></textarea>'
-    + '<div class="mini-hint">负面提示词</div><textarea class="out neg" id="outNeg" readonly></textarea>'
-    + '<div class="build-btns"><button class="primary" id="copyPos">复制正向</button><button id="copyNeg">复制负面</button><button id="copyBoth">两个都复制</button></div>'
-    + '<p class="mini-hint">只想靠文字就复制上面的提示词；服装或姿势要更贴近时，再导出一张参考图一起发。</p>'
-    + '<div class="build-btns"><button id="sheetSave">导出参考图</button><button id="sheetCopy">复制参考图</button></div></div></div>';
+    + '<div class="box" style="grid-column:1/-1"><div class="box-head"><h3>③ 提示词</h3></div>'
+    + '<div class="mini-hint pos-head"><span>正向提示词</span>'
+    + '<button class="copy-ico sm" id="copyPrompt" type="button" title="复制正向提示词" aria-label="复制正向提示词">'
+    + '<svg class="ico i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>'
+    + '<svg class="ico i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>'
+    + '</button></div><textarea class="out" id="outPos" readonly></textarea>'
+    + '<div class="mini-hint neg-head"><span>负面提示词</span>'
+    + '<button class="copy-ico sm" id="copyNeg" type="button" title="复制负向提示词" aria-label="复制负向提示词">'
+    + '<svg class="ico i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>'
+    + '<svg class="ico i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>'
+    + '</button></div><textarea class="out neg" id="outNeg" readonly></textarea>'
+    + '<p class="mini-hint">若希望服装、姿势更贴近，可导出参考图一并发送</p>'
+    + '<div class="build-btns">'
+    + '<button class="copy-all-btn" id="copyBoth" type="button">'
+    + '<svg class="ico i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8" width="9" height="12" rx="2"/><rect x="11" y="4" width="9" height="12" rx="2"/></svg>'
+    + '<svg class="ico i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>'
+    + '<span class="copy-all-label">复制全部提示词</span>'
+    + '</button>'
+    + '<button id="sheetSave">导出参考图</button><button id="sheetCopy">复制参考图</button>'
+    + '</div></div></div>';
   $("#grid").className = "grid";
   $("#grid").innerHTML = html;
   $("#outPos").value = buildPrompt();
@@ -346,9 +370,9 @@ function renderBuild() {
   });
   $("#optBody").oninput = function (e) { OPT.body = e.target.value.trim(); saveSel(); $("#outPos").value = buildPrompt(); };
   $("#optExtra").oninput = function (e) { OPT.extra = e.target.value.trim(); saveSel(); $("#outPos").value = buildPrompt(); };
-  $("#copyPos").onclick = function () { copyText($("#outPos").value, this, "copy_pos"); };
-  $("#copyNeg").onclick = function () { copyText($("#outNeg").value, this, "copy_neg"); };
-  $("#copyBoth").onclick = function () { copyText("POSITIVE:\n" + $("#outPos").value + "\n\nNEGATIVE:\n" + $("#outNeg").value, this, "copy_both"); };
+  $("#copyPrompt").onclick = function () { copyPrompt($("#outPos").value, this, "copy_pos"); };
+  $("#copyNeg").onclick = function () { copyPrompt($("#outNeg").value, this, "copy_neg"); };
+  $("#copyBoth").onclick = function () { copyAllPrompts(this); };
   $("#sheetSave").onclick = function () { exportSheet(this, false); };
   $("#sheetCopy").onclick = function () { exportSheet(this, true); };
   $("#randAll").onclick = function () { trackEvent("build_random", { trigger: "all" }); randomFill("all"); render(); };
@@ -367,6 +391,29 @@ function randomFill(mode) {
 }
 
 /* ---------- 复制 ---------- */
+function copyAllPrompts(btn) {
+  var text = "POSITIVE:\n" + $("#outPos").value + "\n\nNEGATIVE:\n" + $("#outNeg").value;
+  trackEvent("copy", { label: "copy_both", lib: effSet() });
+  var lab = btn.querySelector(".copy-all-label");
+  var done = function () {
+    btn.classList.add("copied");
+    lab.textContent = "已复制全部";
+    setTimeout(function () { btn.classList.remove("copied"); lab.textContent = "复制全部提示词"; }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(function () { fallback(text, done); });
+  } else fallback(text, done);
+}
+function copyPrompt(text, btn, label) {
+  trackEvent("copy", { label: label, lib: effSet() });
+  var done = function () {
+    btn.classList.add("copied");
+    setTimeout(function () { btn.classList.remove("copied"); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(function () { fallback(text, done); });
+  } else fallback(text, done);
+}
 function copyText(text, btn, tag) {
   trackEvent("copy", { label: tag || "", lib: effSet() });
   var label = btn ? btn.textContent : "";
@@ -521,6 +568,7 @@ function openModal(id) {
     f2.onclick = function () { trackEvent("original_download", { lib: "outfit2", id: id, kind: "full" }); };
     $("#mline").hidden = true;
     $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
+    $("#madd").classList.toggle("on", isAdded(id));
     $("#modal").classList.add("on");
     return;
   }
@@ -568,6 +616,7 @@ function openModal(id) {
     ln.onclick = function () { trackEvent("original_download", { lib: "pose", id: id, kind: "line" }); };
   } else { ln.hidden = true; }
   $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
+  $("#madd").classList.toggle("on", isAdded(id));
   $("#modal").classList.add("on");
 }
 function closeModal() { $("#modal").classList.remove("on"); }
@@ -575,7 +624,7 @@ function closeModal() { $("#modal").classList.remove("on"); }
 $("#mclose").onclick = closeModal;
 $("#modal").onclick = function (e) { if (e.target.id === "modal") closeModal(); };
 $("#mcopy").onclick = function () { copyText(tagsOf(byId[curId]), this, "modal_copy"); };
-$("#madd").onclick = function () { toggleAdd(byId[curId]); this.textContent = isAdded(curId) ? "已加入 ✓" : "加入组装"; };
+$("#madd").onclick = function () { toggleAdd(byId[curId]); this.textContent = isAdded(curId) ? "已加入 ✓" : "加入组装"; this.classList.toggle("on", isAdded(curId)); };
 $("#mprev").onclick = function () { stepModal(-1); };
 $("#mnext").onclick = function () { stepModal(1); };
 function stepModal(d) {
