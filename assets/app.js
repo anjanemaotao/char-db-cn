@@ -464,7 +464,9 @@ function openModal(id) {
   curId = id;
   var it = byId[id];
   if (it.set === "outfit2") {
-    var ch = [REF_BASE + it.full, thumbUrl(id)];
+    var ch = hasLocal("ref")
+      ? [localBase("ref") + id + ".png", REF_BASE + it.full, thumbUrl(id)]
+      : [REF_BASE + it.full, thumbUrl(id)];
     var st = 0;
     $("#mimg").onerror = function () { st++; if (st < ch.length) $("#mimg").src = ch[st]; else $("#mimg").onerror = null; };
     $("#mimg").src = ch[0];
@@ -472,10 +474,17 @@ function openModal(id) {
     $("#mfields").innerHTML = "<dt>编号</dt><dd>" + it.id + "</dd><dt>分类</dt><dd>" + esc(it.catZh) + "</dd><dt>类型</dt><dd>单品图 · 无人物</dd>";
     $("#mtags").innerHTML = it.tags.split(",").map(function (t) { return '<span class="chip en">' + esc(t.trim()) + "</span>"; }).join("");
     var f2 = $("#mfull");
-    f2.href = REF_BASE + it.orig;
-    f2.removeAttribute("download");
-    f2.setAttribute("target", "_blank");
-    f2.textContent = "打开原尺寸（源站 PNG）↗";
+    if (hasLocal("ref")) {
+      f2.href = localBase("ref") + id + ".png";
+      f2.setAttribute("download", id + ".png");
+      f2.removeAttribute("target");
+      f2.textContent = "下载原图（本地 PNG · 512×768）";
+    } else {
+      f2.href = REF_BASE + it.orig;
+      f2.removeAttribute("download");
+      f2.setAttribute("target", "_blank");
+      f2.textContent = "打开原尺寸（源站 PNG）↗";
+    }
     $("#mline").hidden = true;
     $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
     $("#modal").classList.add("on");

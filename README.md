@@ -20,15 +20,16 @@
 
 ### 本地原图（可选）
 
-如果本地另有一份原图（默认放在同级目录 `../二次元换装库/originals/`，结构为 `img/<id>.jpg` 与 `line/<id>.png`），
-双击打开时会自动优先读本地文件，弹窗按钮变成「下载原图（本地 · 1024×1536）」「下载线稿（本地 · PNG）」，完全离线可用。
+如果本地另有一份原图（默认放在同级目录 `../二次元换装库/originals/`，结构为 `img/<id>.jpg`、`line/<id>.png`、`costume-ref/<id>.png`），
+双击打开时会自动优先读本地文件，弹窗按钮变成「下载原图（本地 · 1024×1536）」「下载线稿（本地 · PNG）」「下载原图（本地 PNG · 512×768）」，完全离线可用。
 
 路径在 **config.js** 里改：
 
 ```js
 window.LOCAL_ORIGINALS = {
   img: "../二次元换装库/originals/img/",
-  line: "../二次元换装库/originals/line/"
+  line: "../二次元换装库/originals/line/",
+  ref: "../二次元换装库/originals/costume-ref/"
 };
 ```
 
