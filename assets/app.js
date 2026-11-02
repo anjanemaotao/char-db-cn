@@ -316,7 +316,8 @@ function renderBuild() {
   $("#sheetSave").onclick = function () { exportSheet(this, false); };
   $("#sheetCopy").onclick = function () { exportSheet(this, true); };
   $("#randAll").onclick = function () {
-    ["style", "bangs", "color", "acc", "eye", "outfit", "pose"].forEach(function (k) {
+    // 按槽位表遍历，新增槽位（如服装参考）自动纳入随机
+    Object.keys(SLOT_LABEL).forEach(function (k) {
       var pool = DB.items.filter(function (i) { return slotKey(i) === k; });
       if (pool.length) SEL[k] = pool[Math.floor(Math.random() * pool.length)].id;
     });
