@@ -315,15 +315,19 @@ function renderBuild() {
   $("#copyBoth").onclick = function () { copyText("POSITIVE:\n" + $("#outPos").value + "\n\nNEGATIVE:\n" + $("#outNeg").value, this); };
   $("#sheetSave").onclick = function () { exportSheet(this, false); };
   $("#sheetCopy").onclick = function () { exportSheet(this, true); };
-  $("#randAll").onclick = function () {
-    // 按槽位表遍历，新增槽位（如服装参考）自动纳入随机
-    Object.keys(SLOT_LABEL).forEach(function (k) {
-      var pool = DB.items.filter(function (i) { return slotKey(i) === k; });
-      if (pool.length) SEL[k] = pool[Math.floor(Math.random() * pool.length)].id;
-    });
-    saveSel(); render();
-  };
+  $("#randAll").onclick = function () { randomFill("all"); render(); };
   $("#clearAll").onclick = function () { Object.keys(SEL).forEach(function (k) { SEL[k] = null; }); saveSel(); render(); };
+}
+
+/* mode: "all" 全部重抽；"empty" 只补空槽（首屏用，不自动塞参考图） */
+function randomFill(mode) {
+  Object.keys(SLOT_LABEL).forEach(function (k) {
+    if (mode === "empty" && k === "ref") return;
+    if (mode === "empty" && SEL[k] && byId[SEL[k]]) return;
+    var pool = DB.items.filter(function (i) { return slotKey(i) === k; });
+    if (pool.length) SEL[k] = pool[Math.floor(Math.random() * pool.length)].id;
+  });
+  saveSel();
 }
 
 /* ---------- 复制 ---------- */
@@ -591,5 +595,6 @@ S.set = "build";
 document.querySelectorAll(".nav button").forEach(function (x) {
   x.classList.toggle("on", x.dataset.set === "build");
 });
+randomFill("empty");   // 首次进入 / 刷新后，空着的槽位补一个随机值
 render();
 })();
