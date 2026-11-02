@@ -163,6 +163,7 @@ h1 span{
   transition:border-color .15s;
 }
 .sister:hover{border-color:var(--line-strong);text-decoration:none}
+.sister .ico-ext{width:12px;height:12px;opacity:1;margin-left:1px}
 
 .grat{position:relative;align-self:center;margin-left:2px}
 .grat-trigger{
