@@ -5,8 +5,10 @@ function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "
 
 var DB = window.CHARDB;
 var BASE = DB.base;
+var REF_BASE = "https://ai-costume-anime-gallery.pages.dev/";
 var SETS = { hair: "发型", outfit: "服装", pose: "姿势", build: "组装" };
-var S = { set: "hair", q: "", cat: { hair: "", outfit: "", pose: "" }, favOnly: false };
+var S = { set: "hair", q: "", cat: { hair: "", outfit: "", pose: "", outfit2: "" }, favOnly: false, outfitView: "worn" };
+function effSet() { return (S.set === "outfit" && S.outfitView === "ref") ? "outfit2" : S.set; }
 var QUALITY = {
   illustrious: "masterpiece, best quality, amazing quality, very aesthetic, absurdres, newest",
   anima: "masterpiece, best quality, score_7, safe",
@@ -64,6 +66,17 @@ function lineUrl(id) { return BASE + "line/" + id + ".png"; }
 
 /* ---------- 卡片 ---------- */
 function cardHTML(it) {
+  if (it.set === "outfit2") {
+    var fav2 = FAV[it.id] ? " on" : "";
+    var added2 = isAdded(it.id) ? " on" : "";
+    return '<article class="card ref" data-id="' + it.id + '">'
+      + '<div class="ph sq"><img loading="lazy" decoding="async" src="' + thumbUrl(it.id) + '" alt="' + esc(it.id) + '">'
+      + '<div class="badge">' + it.id + '</div><button class="fav' + fav2 + '" data-fav="' + it.id + '" title="收藏">★</button></div>'
+      + '<div class="meta"><h3>' + esc(it.catZh) + '</h3><p class="tg">' + esc(it.tags) + '</p></div>'
+      + '<div class="acts2"><button data-copy="' + it.id + '">复制描述</button>'
+      + '<button data-add="' + it.id + '" class="' + (added2 ? "on" : "") + '">' + (added2 ? "已参考 ✓" : "加入参考") + '</button></div>'
+      + '</article>';
+  }
   var isPose = it.set === "pose";
   var vw = it._v || "img";
   var src = isPose && vw === "line" && it.line ? lineUrl(it.id) : thumbUrl(it.id);
@@ -85,9 +98,9 @@ function isAdded(id) { return Object.keys(SEL).some(function (k) { return SEL[k]
 
 /* ---------- 过滤 ---------- */
 function match(it) {
-  if (it.set !== S.set) return false;
+  if (it.set !== effSet()) return false;
   if (S.favOnly && !FAV[it.id]) return false;
-  if (S.cat[S.set] && it.catZh !== S.cat[S.set]) return false;
+  if (S.cat[effSet()] && it.catZh !== S.cat[effSet()]) return false;
   if (S.q) {
     var q = S.q.toLowerCase();
     var hay = (it.zh + " " + it.jp + " " + it.tags + " " + it.id + " " + it.catZh).toLowerCase();
@@ -99,16 +112,30 @@ function match(it) {
 /* ---------- 工具栏 ---------- */
 function renderToolbar() {
   if (S.set === "build") { $("#toolbar").innerHTML = ""; return; }
-  var tabs = '<button class="tab' + (!S.cat[S.set] ? " on" : "") + '" data-cat="">全部<b>' + DB.counts[S.set] + "</b></button>";
-  DB.cats[S.set].forEach(function (c) {
-    tabs += '<button class="tab' + (S.cat[S.set] === c.name ? " on" : "") + '" data-cat="' + esc(c.name) + '">' + esc(c.name) + "<b>" + c.n + "</b></button>";
+  var set = effSet();
+  var seg = "";
+  if (S.set === "outfit") {
+    seg = '<div class="seg2">'
+      + '<button data-view="worn" class="' + (S.outfitView === "worn" ? "on" : "") + '">角色穿着<b>' + DB.counts.outfit + '</b></button>'
+      + '<button data-view="ref" class="' + (S.outfitView === "ref" ? "on" : "") + '">单品图<b>' + DB.counts.outfit2 + '</b></button>'
+      + "</div>";
+  }
+  var tabs = '<button class="tab' + (!S.cat[set] ? " on" : "") + '" data-cat="">全部<b>' + DB.counts[set] + "</b></button>";
+  DB.cats[set].forEach(function (c) {
+    tabs += '<button class="tab' + (S.cat[set] === c.name ? " on" : "") + '" data-cat="' + esc(c.name) + '">' + esc(c.name) + "<b>" + c.n + "</b></button>";
   });
-  $("#toolbar").innerHTML = '<div class="tabs">' + tabs + "</div>"
-    + '<div class="row"><input id="q" type="search" placeholder="搜索：中文 / 日文 / 标签（twintails、serafuku、水手服）" autocomplete="off">'
+  var placeholder = set === "outfit2"
+    ? "搜索：ID / 英文词（denim、frill、ivory）"
+    : "搜索：中文 / 日文 / 标签（twintails、serafuku、水手服）";
+  $("#toolbar").innerHTML = seg + '<div class="tabs">' + tabs + "</div>"
+    + '<div class="row"><input id="q" type="search" placeholder="' + placeholder + '" autocomplete="off">'
     + '<button class="rndbtn" id="favBtn" style="margin-left:0">★ 只看收藏</button>'
     + '<button class="rndbtn" id="rnd2">🎲 随机一张</button><span id="count"></span></div>';
   $("#toolbar").querySelectorAll("[data-cat]").forEach(function (b) {
-    b.onclick = function () { S.cat[S.set] = b.dataset.cat; render(); };
+    b.onclick = function () { S.cat[set] = b.dataset.cat; render(); };
+  });
+  $("#toolbar").querySelectorAll("[data-view]").forEach(function (b) {
+    b.onclick = function () { S.outfitView = b.dataset.view; S.q = ""; render(); };
   });
   $("#q").value = S.q;
   $("#q").oninput = function (e) { S.q = e.target.value.trim(); renderGrid(); };
@@ -123,7 +150,7 @@ function renderToolbar() {
 function renderGrid() {
   if (S.set === "build") return;
   var list = DB.items.filter(match);
-  $("#grid").className = "grid " + S.set;
+  $("#grid").className = "grid " + effSet();
   $("#grid").innerHTML = list.map(cardHTML).join("");
   $("#count").textContent = "符合条件：" + list.length + " 张";
   $("#grid").querySelectorAll(".card").forEach(function (c) {
@@ -175,6 +202,7 @@ function toggleAdd(it) {
   saveSel(); render();
 }
 function slotKey(it) {
+  if (it.set === "outfit2") return "ref";
   if (it.set === "outfit") return "outfit";
   if (it.set === "pose") return "pose";
   if (it.sub) return it.sub;   // style / bangs / color / acc / eye
@@ -190,7 +218,7 @@ function qualOpts() {
     return '<option value="' + o[0] + '"' + (OPT.quality === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
   }).join("");
 }
-var SLOT_LABEL = { style: "发型", bangs: "刘海", color: "发色", acc: "发饰", eye: "眼睛", outfit: "服装", pose: "姿势" };
+var SLOT_LABEL = { style: "发型", bangs: "刘海", color: "发色", acc: "发饰", eye: "眼睛", outfit: "服装", ref: "服装参考", pose: "姿势" };
 
 function buildPrompt() {
   var q = QUALITY[OPT.quality] || "";
@@ -247,7 +275,7 @@ function renderBuild() {
   var html = '<div class="build">'
     + '<div class="box"><h3>① 选中的零件</h3><div class="slots">' + slots + "</div>"
     + '<div class="build-btns"><button id="randAll">🎲 全部随机</button><button id="clearAll">全部清空</button></div>'
-    + '<p class="mini-hint">在「发型 / 服装 / 姿势」页点卡片上的「加入组装」即可填入；带颜色标记的发型卡会自动替换基础发型。</p></div>'
+    + '<p class="mini-hint">在「发型 / 服装 / 姿势」页点卡片上的「加入组装」即可填入；带颜色标记的发型卡会自动替换基础发型。<br>「服装 → 单品图」里的图没有人物，点「加入参考」会填进「服装参考」，导出参考图时一起拼进去。</p></div>'
     + '<div class="box"><h3>② 生成设置</h3><div class="fields">'
     + "<label>品质前缀</label><select id=\"optQuality\">" + qualOpts() + "</select>"
     + "<label>表情</label><select id=\"optExpr\">" + opts(EXPR, OPT.expr) + "</select>"
@@ -323,7 +351,11 @@ function loadImg(url, cors) {
     im.src = url;
   });
 }
-var SHEET_ORDER = ["style", "bangs", "color", "acc", "eye", "outfit", "pose"];
+var SHEET_ORDER = ["style", "bangs", "color", "acc", "eye", "outfit", "ref", "pose"];
+function sheetSrc(it) {
+  if (it.set === "outfit2") return REF_BASE + it.full;
+  return fullUrl(it.id);
+}
 function sheetItems() {
   var out = [];
   SHEET_ORDER.forEach(function (k) {
@@ -340,7 +372,7 @@ function buildSheet() {
     function next() {
       if (i >= list.length) { draw(); return; }
       var o = list[i++];
-      loadImg(fullUrl(o.it.id), true).then(function (im) {
+      loadImg(sheetSrc(o.it), true).then(function (im) {
         loaded.push({ img: im, item: o }); next();
       }).catch(function () {
         loadImg(thumbUrl(o.it.id), true).then(function (im) {
@@ -420,6 +452,24 @@ var curId = null;
 function openModal(id) {
   curId = id;
   var it = byId[id];
+  if (it.set === "outfit2") {
+    var ch = [REF_BASE + it.full, thumbUrl(id)];
+    var st = 0;
+    $("#mimg").onerror = function () { st++; if (st < ch.length) $("#mimg").src = ch[st]; else $("#mimg").onerror = null; };
+    $("#mimg").src = ch[0];
+    $("#mtitle").textContent = it.id;
+    $("#mfields").innerHTML = "<dt>编号</dt><dd>" + it.id + "</dd><dt>分类</dt><dd>" + esc(it.catZh) + "</dd><dt>类型</dt><dd>单品图 · 无人物</dd>";
+    $("#mtags").innerHTML = it.tags.split(",").map(function (t) { return '<span class="chip en">' + esc(t.trim()) + "</span>"; }).join("");
+    var f2 = $("#mfull");
+    f2.href = REF_BASE + it.orig;
+    f2.removeAttribute("download");
+    f2.setAttribute("target", "_blank");
+    f2.textContent = "打开原尺寸（源站 PNG）↗";
+    $("#mline").hidden = true;
+    $("#madd").textContent = isAdded(id) ? "已参考 ✓" : "加入服装参考";
+    $("#modal").classList.add("on");
+    return;
+  }
   var chain = hasLocal("img")
     ? [localBase("img") + id + ".jpg", fullUrl(id), thumbUrl(id)]
     : [fullUrl(id), thumbUrl(id)];
