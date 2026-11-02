@@ -67,6 +67,16 @@ window.LOCAL_ORIGINALS = {
 - **可变行**：每张图最多改 3 个（服装、姿势、表情）
 - 姿势标签里出现 2girls 时，会自动把 1girl, solo 换成 2girls, multiple girls
 
+## 埋点
+
+**本站当前已开启：Microsoft Clarity `r1wmvdsf4a`。**
+
+两个站都在 `https://sleepyzone.online` 下，共用同一个 Clarity 项目；Clarity 报表里按 URL 过滤（包含 `char-db-cn`）即可只看本站，热图本来就是按 URL 分开的。
+
+上报事件：`lib_view` / `search` / `filter` / `item_open` / `copy` / `fav` / `random` / `pose_view` / `build_add` / `build_opt` / `build_random` / `build_export` / `original_download` / `ref_click`。
+
+开关在 **config.js** 的 `window.ANALYTICS`，清空 `providers` 即完全关闭；控制台执行 `window.__trackDebug = true` 后刷新可看实时事件，`window.__trackLog` 保留最近 200 条。
+
 ## 授权（沿用原站）
 
 - ✅ 免费使用，作品制作中的商用、修改、参考都 OK；无需署名

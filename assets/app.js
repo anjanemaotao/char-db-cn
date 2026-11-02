@@ -2,6 +2,14 @@
 "use strict";
 var $ = function (s) { return document.querySelector(s); };
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); }
+function trackEvent(name, params) { try { if (window.track) window.track(name, params); } catch (e) { } }
+var searchTimer = null;
+function trackSearch() {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(function () {
+    if (S.q) trackEvent("search", { lib: effSet(), q: S.q.slice(0, 40) });
+  }, 800);
+}
 
 var DB = window.CHARDB;
 var BASE = DB.base;
@@ -138,17 +146,30 @@ function renderToolbar() {
     + '<button class="rndbtn" id="favBtn" style="margin-left:0">★ 只看收藏</button>'
     + '<button class="rndbtn" id="rnd2">🎲 随机一张</button><span id="count"></span></div>';
   $("#toolbar").querySelectorAll("[data-cat]").forEach(function (b) {
-    b.onclick = function () { S.cat[set] = b.dataset.cat; render(); };
+    b.onclick = function () {
+      S.cat[set] = b.dataset.cat;
+      trackEvent("filter", { lib: set, type: "cat", value: b.dataset.cat || "all" });
+      render();
+    };
   });
   $("#toolbar").querySelectorAll("[data-view]").forEach(function (b) {
-    b.onclick = function () { S.outfitView = b.dataset.view; S.q = ""; render(); };
+    b.onclick = function () {
+      S.outfitView = b.dataset.view; S.q = "";
+      trackEvent("filter", { lib: "outfit", type: "view", value: b.dataset.view });
+      render();
+    };
   });
   $("#q").value = S.q;
-  $("#q").oninput = function (e) { S.q = e.target.value.trim(); renderGrid(); };
+  $("#q").oninput = function (e) { S.q = e.target.value.trim(); renderGrid(); trackSearch(); };
   $("#favBtn").classList.toggle("on", S.favOnly);
-  $("#favBtn").onclick = function () { S.favOnly = !S.favOnly; render(); };
+  $("#favBtn").onclick = function () {
+    S.favOnly = !S.favOnly;
+    trackEvent("filter", { lib: set, type: "fav", value: S.favOnly ? "on" : "off" });
+    render();
+  };
   $("#rnd2").onclick = function () {
     var list = DB.items.filter(match); if (!list.length) return;
+    trackEvent("random", { lib: set });
     openModal(list[Math.floor(Math.random() * list.length)].id);
   };
 }
@@ -163,15 +184,22 @@ function renderGrid() {
     var id = c.dataset.id;
     c.querySelector("img").onclick = function () { openModal(id); };
     var f = c.querySelector("[data-fav]");
-    if (f) f.onclick = function (e) { e.stopPropagation(); FAV[id] ? delete FAV[id] : FAV[id] = 1; saveFav(); f.classList.toggle("on"); };
+    if (f) f.onclick = function (e) {
+      e.stopPropagation();
+      var addFav = !FAV[id];
+      FAV[id] ? delete FAV[id] : FAV[id] = 1;
+      saveFav(); f.classList.toggle("on");
+      trackEvent("fav", { lib: effSet(), id: id, action: addFav ? "add" : "remove" });
+    };
     var cp = c.querySelector("[data-copy]");
-    if (cp) cp.onclick = function (e) { e.stopPropagation(); copyText(tagsOf(byId[id]), cp); };
+    if (cp) cp.onclick = function (e) { e.stopPropagation(); copyText(tagsOf(byId[id]), cp, "card_copy"); };
     var ad = c.querySelector("[data-add]");
     if (ad) ad.onclick = function (e) { e.stopPropagation(); toggleAdd(byId[id]); };
     c.querySelectorAll("[data-vw]").forEach(function (b) {
       b.onclick = function (e) {
         e.stopPropagation();
         byId[id]._v = b.dataset.vw;
+        trackEvent("pose_view", { lib: "pose", value: b.dataset.vw });
         c.outerHTML = cardHTML(byId[id]);
         renderGrid();
       };
@@ -206,6 +234,7 @@ function toggleAdd(it) {
     }
   }
   saveSel(); render();
+  trackEvent("build_add", { lib: it.set, id: it.id, action: SEL[k] === it.id ? "add" : "remove" });
 }
 function slotKey(it) {
   if (it.set === "outfit2") return "outfit";   // 单品图与角色穿着共用一个「服装」槽
@@ -311,17 +340,18 @@ function renderBuild() {
       if (id === "optExpr") OPT.expr = el.value;
       if (id === "optCompo") OPT.compo = el.value;
       if (id === "optBg") OPT.bg = el.value;
+      trackEvent("build_opt", { type: id.replace("opt", "").toLowerCase(), value: el.value });
       saveSel(); $("#outPos").value = buildPrompt();
     };
   });
   $("#optBody").oninput = function (e) { OPT.body = e.target.value.trim(); saveSel(); $("#outPos").value = buildPrompt(); };
   $("#optExtra").oninput = function (e) { OPT.extra = e.target.value.trim(); saveSel(); $("#outPos").value = buildPrompt(); };
-  $("#copyPos").onclick = function () { copyText($("#outPos").value, this); };
-  $("#copyNeg").onclick = function () { copyText($("#outNeg").value, this); };
-  $("#copyBoth").onclick = function () { copyText("POSITIVE:\n" + $("#outPos").value + "\n\nNEGATIVE:\n" + $("#outNeg").value, this); };
+  $("#copyPos").onclick = function () { copyText($("#outPos").value, this, "copy_pos"); };
+  $("#copyNeg").onclick = function () { copyText($("#outNeg").value, this, "copy_neg"); };
+  $("#copyBoth").onclick = function () { copyText("POSITIVE:\n" + $("#outPos").value + "\n\nNEGATIVE:\n" + $("#outNeg").value, this, "copy_both"); };
   $("#sheetSave").onclick = function () { exportSheet(this, false); };
   $("#sheetCopy").onclick = function () { exportSheet(this, true); };
-  $("#randAll").onclick = function () { randomFill("all"); render(); };
+  $("#randAll").onclick = function () { trackEvent("build_random", { trigger: "all" }); randomFill("all"); render(); };
   $("#clearAll").onclick = function () { Object.keys(SEL).forEach(function (k) { SEL[k] = null; }); saveSel(); render(); };
 }
 
@@ -337,7 +367,8 @@ function randomFill(mode) {
 }
 
 /* ---------- 复制 ---------- */
-function copyText(text, btn) {
+function copyText(text, btn, tag) {
+  trackEvent("copy", { label: tag || "", lib: effSet() });
   var label = btn ? btn.textContent : "";
   var done = function () { if (btn) { btn.textContent = "已复制 ✓"; setTimeout(function () { btn.textContent = label; }, 1500); } };
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -440,6 +471,7 @@ function sheetName() {
   return "chardb_" + sheetItems().map(function (o) { return o.it.id; }).join("_") + ".png";
 }
 function exportSheet(btn, asCopy) {
+  trackEvent("build_export", { action: asCopy ? "copy" : "download" });
   var label = btn.textContent;
   btn.textContent = "生成中…";
   buildSheet().then(function (blob) {
@@ -463,6 +495,7 @@ var curId = null;
 function openModal(id) {
   curId = id;
   var it = byId[id];
+  trackEvent("item_open", { lib: it.set, id: it.id });
   if (it.set === "outfit2") {
     var ch = hasLocal("ref")
       ? [localBase("ref") + id + ".png", REF_BASE + it.full, thumbUrl(id)]
@@ -485,6 +518,7 @@ function openModal(id) {
       f2.setAttribute("target", "_blank");
       f2.textContent = "打开原尺寸（源站 PNG）↗";
     }
+    f2.onclick = function () { trackEvent("original_download", { lib: "outfit2", id: id, kind: "full" }); };
     $("#mline").hidden = true;
     $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
     $("#modal").classList.add("on");
@@ -516,6 +550,7 @@ function openModal(id) {
     full.setAttribute("target", "_blank");
     full.textContent = "打开原图（源站）↗";
   }
+  full.onclick = function () { trackEvent("original_download", { lib: it.set, id: id, kind: "full" }); };
   var ln = $("#mline");
   if (it.set === "pose" && it.line) {
     ln.hidden = false;
@@ -530,6 +565,7 @@ function openModal(id) {
       ln.setAttribute("target", "_blank");
       ln.textContent = "打开线稿（源站）↗";
     }
+    ln.onclick = function () { trackEvent("original_download", { lib: "pose", id: id, kind: "line" }); };
   } else { ln.hidden = true; }
   $("#madd").textContent = isAdded(id) ? "已加入 ✓" : "加入组装";
   $("#modal").classList.add("on");
@@ -538,7 +574,7 @@ function closeModal() { $("#modal").classList.remove("on"); }
 
 $("#mclose").onclick = closeModal;
 $("#modal").onclick = function (e) { if (e.target.id === "modal") closeModal(); };
-$("#mcopy").onclick = function () { copyText(tagsOf(byId[curId]), this); };
+$("#mcopy").onclick = function () { copyText(tagsOf(byId[curId]), this, "modal_copy"); };
 $("#madd").onclick = function () { toggleAdd(byId[curId]); this.textContent = isAdded(curId) ? "已加入 ✓" : "加入组装"; };
 $("#mprev").onclick = function () { stepModal(-1); };
 $("#mnext").onclick = function () { stepModal(1); };
@@ -597,10 +633,18 @@ document.addEventListener("keydown", function (e) {
   } catch (e) { }
 })();
 
+/* ---------- 网盘入口埋点 ---------- */
+document.querySelectorAll(".dl-btns a").forEach(function (a) {
+  var href = a.getAttribute("href") || "";
+  var src = href.indexOf("baidu") >= 0 ? "pan_baidu_dl" : (href.indexOf("quark") >= 0 ? "pan_quark_dl" : "");
+  if (src) a.addEventListener("click", function () { trackEvent("ref_click", { source: src }); });
+});
+
 /* ---------- 导航 ---------- */
 document.querySelectorAll(".nav button").forEach(function (b) {
   b.onclick = function () {
     S.set = b.dataset.set;
+    trackEvent("lib_view", { lib: S.set });
     document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x === b); });
     render();
   };
@@ -610,6 +654,7 @@ S.set = "build";
 document.querySelectorAll(".nav button").forEach(function (x) {
   x.classList.toggle("on", x.dataset.set === "build");
 });
+trackEvent("lib_view", { lib: "build" });
 randomFill("empty");   // 首次进入 / 刷新后，空着的槽位补一个随机值
 render();
 })();
