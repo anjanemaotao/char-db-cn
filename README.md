@@ -7,6 +7,10 @@
 
 **在线访问**：<https://sleepyzone.online/char-db-cn/>
 
+[新服装支持](https://x.com/giaaibusi/status/2116801951283450032)：
+
+<img width="2678" height="1822" alt="Image" src="https://github.com/user-attachments/assets/b818cb33-35a3-4fac-b780-949bdf2f9c05" />
+
 ## 打开方式
 
 也可以本地双击 **index.html**（需要和 thumbs/ 在同一目录）。
