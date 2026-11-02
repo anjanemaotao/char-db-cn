@@ -49,7 +49,7 @@ window.LOCAL_ORIGINALS = {
 - 百度网盘：<https://pan.baidu.com/s/1X0o-TJZzFrNoist6a8qqXg?pwd=Px22>
 - 夸克网盘：<https://pan.quark.cn/s/adb9f57434be>
 
-顶部下载条常驻这两组入口：「📦 原图包」和「单品图包 · 新增」并排一行，鼠标悬停包名可看包含内容说明。
+导航栏（发型 / 服装 / 姿势 / 组装 那一行）右侧常驻这两组入口：「📦 原图包」和「单品图包 · 新增」，鼠标悬停包名可看包含内容说明。
 
 ## 能做什么
 

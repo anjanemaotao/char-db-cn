@@ -634,7 +634,7 @@ document.addEventListener("keydown", function (e) {
 })();
 
 /* ---------- 网盘入口埋点 ---------- */
-document.querySelectorAll(".dlbar .dl-grp a.dl-btn").forEach(function (a) {
+document.querySelectorAll(".nav-pan a.dl-btn").forEach(function (a) {
   var href = a.getAttribute("href") || "";
   var src = a.dataset.pan || (href.indexOf("baidu") >= 0 ? "pan_baidu_dl" : (href.indexOf("quark") >= 0 ? "pan_quark_dl" : ""));
   if (src) a.addEventListener("click", function () { trackEvent("ref_click", { source: src }); });
