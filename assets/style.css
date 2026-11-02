@@ -276,3 +276,16 @@ textarea.out.neg{min-height:80px;color:#7a4a4a}
 .card.ref h3{font-size:12px;color:#3b3b45}
 .card.ref .tg{font-size:10.5px;color:#7c7c88}
 
+
+/* ---------- 服装页：单品图原图网盘入口 ---------- */
+.viewhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px}
+.viewhead .seg2{margin:0}
+.dl-inline{display:inline-flex;align-items:center;gap:8px;row-gap:6px;flex-wrap:wrap;max-width:100%;margin-left:auto;padding:2px 5px 2px 12px;background:#fffaf0;border:1px solid #efe6cd;border-radius:999px}
+.dl-inline-t{display:inline-flex;align-items:baseline;gap:6px;font-size:12px;font-weight:600;color:#8a6a1e;white-space:nowrap}
+.dl-inline-t em{font-style:normal;font-weight:400;font-size:11px;color:#a08c5c}
+@media (max-width:720px){.dl-inline{margin-left:0;border-radius:14px}}
+@media (max-width:360px){
+  .dl-inline{width:100%}
+  .dl-inline-t{flex:1 1 100%}
+  .dl-inline .dl-btn{flex:1;justify-content:center}
+}

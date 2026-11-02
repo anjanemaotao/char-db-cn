@@ -134,6 +134,15 @@ function renderToolbar() {
       + '<button data-view="ref" class="' + (S.outfitView === "ref" ? "on" : "") + '">单品图<b>' + DB.counts.outfit2 + '</b></button>'
       + "</div>";
   }
+  var pan = "";
+  if (set === "outfit2") {
+    pan = '<div class="dl-inline">'
+      + '<span class="dl-inline-t">📦 单品图原图 <em>' + DB.counts.outfit2 + ' 张</em></span>'
+      + '<a class="dl-btn" data-pan="baidu" href="https://pan.baidu.com/s/1X0o-TJZzFrNoist6a8qqXg?pwd=Px22" target="_blank" rel="noopener sponsored">百度网盘 ↗</a>'
+      + '<a class="dl-btn" data-pan="quark" href="https://pan.quark.cn/s/adb9f57434be" target="_blank" rel="noopener sponsored">夸克网盘 ↗</a>'
+      + "</div>";
+  }
+  var head = (seg || pan) ? '<div class="viewhead">' + seg + pan + "</div>" : "";
   var tabs = '<button class="tab' + (!S.cat[set] ? " on" : "") + '" data-cat="">全部<b>' + DB.counts[set] + "</b></button>";
   DB.cats[set].forEach(function (c) {
     tabs += '<button class="tab' + (S.cat[set] === c.name ? " on" : "") + '" data-cat="' + esc(c.name) + '">' + esc(c.name) + "<b>" + c.n + "</b></button>";
@@ -141,10 +150,13 @@ function renderToolbar() {
   var placeholder = set === "outfit2"
     ? "搜索：ID / 英文词（denim、frill、ivory）"
     : "搜索：中文 / 日文 / 标签（twintails、serafuku、水手服）";
-  $("#toolbar").innerHTML = seg + '<div class="tabs">' + tabs + "</div>"
+  $("#toolbar").innerHTML = head + '<div class="tabs">' + tabs + "</div>"
     + '<div class="row"><input id="q" type="search" placeholder="' + placeholder + '" autocomplete="off">'
     + '<button class="rndbtn" id="favBtn" style="margin-left:0">★ 只看收藏</button>'
     + '<button class="rndbtn" id="rnd2">🎲 随机一张</button><span id="count"></span></div>';
+  $("#toolbar").querySelectorAll("[data-pan]").forEach(function (a) {
+    a.onclick = function () { trackEvent("ref_click", { source: "pan_" + a.dataset.pan + "_outfit2" }); };
+  });
   $("#toolbar").querySelectorAll("[data-cat]").forEach(function (b) {
     b.onclick = function () {
       S.cat[set] = b.dataset.cat;
